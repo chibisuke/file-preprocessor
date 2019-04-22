@@ -8,7 +8,7 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
     "lint": "tslint -p tsconfig.json",
-    "prepare": "npm run build", 
+    "prepare": "npm run build",
     "prepublishOnly": "npm test && npm run lint",
     "preversion": "npm run lint",
     "version": "npm run format && git add -A src",
@@ -19,7 +19,12 @@
     "type": "git",
     "url": "git+https://github.com/chibisuke/file-preprocessor.git"
   },
-  "keywords": ["preprocessor", "angular", "typescript", "ionic"],
+  "keywords": [
+    "preprocessor",
+    "angular",
+    "typescript",
+    "ionic"
+  ],
   "author": "Chibisuke",
   "license": "MIT",
   "bugs": {
@@ -28,6 +33,7 @@
   "homepage": "https://github.com/chibisuke/file-preprocessor#readme",
   "devDependencies": {
     "@types/jest": "^24.0.11",
+    "@types/node": "^11.13.6",
     "jest": "^24.7.1",
     "prettier": "^1.17.0",
     "ts-jest": "^24.0.2",
