@@ -3,8 +3,8 @@ import * as FS from 'fs';
 import * as PATH from 'path';
 
 interface IFilePreprocessorOptions {
-	prepend: string[];
-	append: string[];
+	prepend?: string[];
+	append?: string[];
 }
 
 interface IParserStackEntry {
@@ -13,7 +13,7 @@ interface IParserStackEntry {
 	wasTrue?: boolean;
 }
 
-export default class FilePreprocessor {
+export class FilePreprocessor {
 	private rIsIf: RegExp = new RegExp('^\\s*#if\\s+(.*)');
 	private rIsElse: RegExp = new RegExp('^\\s*#else\\s*$');
 	private rIsElseIf: RegExp = new RegExp('^\\s*#elseif\\s+(.*)');
@@ -52,7 +52,8 @@ export default class FilePreprocessor {
 			// #if a == 5
 			res = this.rIsIf.exec(ln);
 			if (res !== null) {
-				if (Function('return (' + this.processDefined(res[0]) + ')')()) {
+				const fun = new Function('return (' + this.processDefined(res[1]) + ')');
+				if (fun()) {
 					this.parserStack.push({ type: 'if', result: true });
 				} else {
 					this.parserStack.push({ type: 'if', result: false });
@@ -68,7 +69,8 @@ export default class FilePreprocessor {
 				} else {
 					const wasTrue = stackTop.result || stackTop.wasTrue;
 					this.parserStack.pop();
-					if (!wasTrue && Function('return (' + this.processDefined(res[0]) + ')')()) {
+					const fun = new Function('return (' + this.processDefined(res[1]) + ')');
+					if (!wasTrue && fun()) {
 						this.parserStack.push({ type: 'elseif', result: true });
 					} else {
 						this.parserStack.push({ type: 'elseif', result: false, wasTrue });
@@ -92,24 +94,25 @@ export default class FilePreprocessor {
 			res = this.rIsEndIf.exec(ln);
 			if (res !== null) {
 				stackTop = this.parserStack[this.parserStack.length - 1];
-				if (stackTop && stackTop.type !== 'if' && stackTop.type !== 'elseif') {
+				if (stackTop && stackTop.type !== 'if' && stackTop.type !== 'elseif' && stackTop.type !== 'else') {
 					throw new Error('unexpected #endif in line ' + line);
 				} else {
 					this.parserStack.pop();
 				}
+				continue;
 			}
 
 			// #define
 			res = this.rIsDefine.exec(ln);
 			if (res !== null) {
-				this.setDefine(res[0], res[1]);
+				this.setDefine(res[1], res[2]);
 				continue;
 			}
 
 			// #include
 			res = this.rIsInclude.exec(ln);
 			if (res !== null) {
-				const p = PATH.resolve(__dirname, res[0]);
+				const p = PATH.resolve(__dirname, res[1]);
 				const file = FS.readFileSync(p, { encoding: 'utf8' });
 				this.processString(file);
 				continue;
@@ -117,6 +120,9 @@ export default class FilePreprocessor {
 
 			stackTop = this.parserStack[this.parserStack.length - 1];
 			if (stackTop && stackTop.type === 'if' && stackTop.result === false) {
+				continue;
+			}
+			if (stackTop && stackTop.type === 'elseif' && stackTop.result === false) {
 				continue;
 			}
 			if (stackTop && stackTop.type === 'else' && stackTop.result === true) {
