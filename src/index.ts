@@ -1,10 +1,11 @@
-import { forStatement } from '@babel/types';
+import { forStatement, optionalCallExpression } from '@babel/types';
 import * as FS from 'fs';
 import * as PATH from 'path';
 
 interface IFilePreprocessorOptions {
 	prepend?: string[];
 	append?: string[];
+	defines?: object;
 }
 
 interface IParserStackEntry {
@@ -13,27 +14,40 @@ interface IParserStackEntry {
 	wasTrue?: boolean;
 }
 
+interface IDefines {
+	[key: string]: { value?: string; regex?: RegExp };
+}
+
 export class FilePreprocessor {
-	private rIsIf: RegExp = new RegExp('^\\s*#if\\s+(.*)');
-	private rIsElse: RegExp = new RegExp('^\\s*#else\\s*$');
-	private rIsElseIf: RegExp = new RegExp('^\\s*#elseif\\s+(.*)');
-	private rIsDefine: RegExp = new RegExp('^\\s*#define\\s+(.+?)(\\s+(.+))*\\s*$');
-	private rIsEndIf: RegExp = new RegExp('^\\s*#endif\\s*$');
-	private rIsIfDef: RegExp = new RegExp('^\\s*#ifdef\\s+');
-	private rIsInclude: RegExp = new RegExp('^\\s*#include\\s+(.*)');
+	protected output: string[] = [];
+	protected parserStack: IParserStackEntry[] = [];
+	protected defines: IDefines = {};
 
-	private rDefined: RegExp = new RegExp('defined\\(\\s*(.*?)\\s*\\)');
+	private readonly rIsIf: RegExp = new RegExp('^\\s*#if\\s+(.*)');
+	private readonly rIsElse: RegExp = new RegExp('^\\s*#else\\s*$');
+	private readonly rIsElseIf: RegExp = new RegExp('^\\s*#elseif\\s+(.*)');
+	private readonly rIsDefine: RegExp = new RegExp('^\\s*#define\\s+(.+?)(\\s+(.+))*\\s*$');
+	private readonly rIsEndIf: RegExp = new RegExp('^\\s*#endif\\s*$');
+	private readonly rIsIfDef: RegExp = new RegExp('^\\s*#ifdef\\s+(.*)');
+	private readonly rIsInclude: RegExp = new RegExp('^\\s*#include\\s+(.*)');
+	private readonly rDefined: RegExp = new RegExp('defined\\(\\s*(.*?)\\s*\\)');
 
-	private output: string[] = [];
+	constructor(public options: IFilePreprocessorOptions = {}) {
+		// 	this.defines = options.defines || {};
+	}
 
-	private parserStack: IParserStackEntry[] = [];
-
-	constructor(public options: IFilePreprocessorOptions) {}
-
-	public processString(source: string): string {
+	public processString(source: string, nested: boolean = false): string {
 		let stackTop;
 		let line = 0;
 		const lines = source.split(/\r?\n/);
+
+		if (!nested && this.options.prepend) {
+			for (const ap of this.options.prepend) {
+				const file = FS.readFileSync(ap, { encoding: 'utf8' });
+				this.processString(file, true);
+			}
+		}
+
 		for (const ln of lines) {
 			let res: RegExpExecArray | null;
 			line++;
@@ -41,7 +55,7 @@ export class FilePreprocessor {
 			// #ifdef KEKS
 			res = this.rIsIfDef.exec(ln);
 			if (res !== null) {
-				if (this.isDefined(res[0])) {
+				if (this.isDefined(res[1])) {
 					this.parserStack.push({ type: 'if', result: true });
 				} else {
 					this.parserStack.push({ type: 'if', result: false });
@@ -105,16 +119,25 @@ export class FilePreprocessor {
 			// #define
 			res = this.rIsDefine.exec(ln);
 			if (res !== null) {
-				this.setDefine(res[1], res[2]);
+				this.setDefine(res[1], res[3]);
 				continue;
 			}
 
 			// #include
 			res = this.rIsInclude.exec(ln);
 			if (res !== null) {
-				const p = PATH.resolve(__dirname, res[1]);
+				let p: string;
+				if (res[1].charAt(0) === '<') {
+					p = res[1].replace(/[<>]/g, '');
+					p = PATH.resolve(process.cwd(), p);
+				} else {
+					throw new Error(
+						'#include syntax with quotes is not yet supported. Please use full path from CWD with < >. in line ' +
+							line,
+					);
+				}
 				const file = FS.readFileSync(p, { encoding: 'utf8' });
-				this.processString(file);
+				this.processString(file, true);
 				continue;
 			}
 
@@ -130,16 +153,31 @@ export class FilePreprocessor {
 			}
 			this.output.push(this.replaceDefines(ln));
 		}
-
+		if (!nested && this.options.append) {
+			for (const ap of this.options.append) {
+				const file = FS.readFileSync(ap, { encoding: 'utf8' });
+				this.processString(file, true);
+			}
+		}
 		return this.output.join('\n');
 	}
 
 	private setDefine(name: string, value: string): boolean {
+		if (this.defines[name]) {
+			throw new Error(name + ' is already defined');
+		} else if (value) {
+			this.defines[name] = { value, regex: new RegExp('(\\W*)(' + name + ')(\\W*)') };
+		} else {
+			this.defines[name] = {};
+		}
 		return true;
 	}
 
 	private isDefined(def: string): boolean {
-		return true;
+		if (this.defines[def] !== undefined) {
+			return true;
+		}
+		return false;
 	}
 
 	private processDefined(lineIn: string): string {
@@ -147,6 +185,14 @@ export class FilePreprocessor {
 	}
 
 	private replaceDefines(lineIn: string): string {
+		for (const def in this.defines) {
+			if (this.defines.hasOwnProperty(def)) {
+				const value = this.defines[def];
+				if (value.regex && value.value !== undefined) {
+					lineIn = lineIn.replace(value.regex, '$1' + value.value + '$3');
+				}
+			}
+		}
 		return lineIn;
 	}
 }
