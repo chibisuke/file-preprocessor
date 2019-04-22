@@ -18,11 +18,8 @@ test('Test if #IF is working', () => {
 			true
 		B
 	`;
-	expect(
-		fp.processString(teststring)
-	).toBe(testresult);
+	expect(fp.processString(teststring)).toBe(testresult);
 });
-
 
 test('Test if #ELSE is working', () => {
 	const fp = new FilePreprocessor({});
@@ -43,9 +40,7 @@ test('Test if #ELSE is working', () => {
 			false
 		B
 	`;
-	expect(
-		fp.processString(teststring)
-	).toBe(testresult);
+	expect(fp.processString(teststring)).toBe(testresult);
 });
 
 test('Test if #ELSEIF is working', () => {
@@ -71,7 +66,5 @@ test('Test if #ELSEIF is working', () => {
 			X3
 		B
 	`;
-	expect(
-		fp.processString(teststring)
-	).toBe(testresult);
+	expect(fp.processString(teststring)).toBe(testresult);
 });
