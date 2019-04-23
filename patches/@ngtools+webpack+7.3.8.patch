@@ -1,0 +1,24 @@
+diff --git a/node_modules/@ngtools/webpack/src/compiler_host.js b/node_modules/@ngtools/webpack/src/compiler_host.js
+index f00b749..d146404 100644
+--- a/node_modules/@ngtools/webpack/src/compiler_host.js
++++ b/node_modules/@ngtools/webpack/src/compiler_host.js
+@@ -10,6 +10,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ const core_1 = require("@angular-devkit/core");
+ const fs_1 = require("fs");
+ const ts = require("typescript");
++const FilePreprocessor = require("file-preprocessor").FilePreprocessor;
+ const dev = Math.floor(Math.random() * 10000);
+ class WebpackCompilerHost {
+     constructor(_options, basePath, host, cacheSourceFiles, directTemplateLoading = false) {
+@@ -218,8 +219,10 @@ class WebpackCompilerHost {
+             if (cached) {
+                 return cached;
+             }
+-            const content = this.readFile(fileName);
++            let content = this.readFile(fileName);
+             if (content !== undefined) {
++                let fp = new FilePreprocessor({prefix: '//#'});
++                content = fp.processString(content);                
+                 const sf = ts.createSourceFile(workaroundResolve(fileName), content, languageVersion, true);
+                 if (this.cacheSourceFiles) {
+                     this._sourceFileCache.set(p, sf);
