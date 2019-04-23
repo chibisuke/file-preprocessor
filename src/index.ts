@@ -33,6 +33,8 @@ export class FilePreprocessor {
 	private rIsInclude: RegExp;
 	private rDefined: RegExp;
 
+	private rLocalInclude: RegExp = new RegExp('.*\\((.*):[0-9]+:[0-9]+\\)');
+
 	constructor(public options: IFilePreprocessorOptions = {}) {
 		const prefix = options.prefix || '#';
 
@@ -142,10 +144,12 @@ export class FilePreprocessor {
 					p = res[1].replace(/[<>]/g, '');
 					p = PATH.resolve(process.cwd(), p);
 				} else {
-					throw new Error(
-						'#include syntax with quotes is not yet supported. Please use full path from CWD with < >. in line ' +
-							line,
-					);
+					p = res[1].replace(/"/g, '');
+					res = this.rLocalInclude.exec((new Error().stack || '').split('\n')[2]);
+					if (!res) {
+						throw new Error('#include syntax with quotes - detection of current path failed');
+					}
+					p = PATH.resolve(PATH.dirname(res[1]), p);
 				}
 				const file = FS.readFileSync(p, { encoding: 'utf8' });
 				this.processString(file, true);

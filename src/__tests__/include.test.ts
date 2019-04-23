@@ -22,10 +22,22 @@ test('Test if prepend is working', () => {
 	expect(fp.processString(teststring)).toBe(testresult);
 });
 
-test('Test if #include is working', () => {
+test('Test if global(< >) #include is working', () => {
 	const fp = new FilePreprocessor();
 	const teststring = `
         #include <src/__tests__/include.inc>
+    `;
+
+	const testresult = `
+INCLUDE
+    `;
+	expect(fp.processString(teststring)).toBe(testresult);
+});
+
+test('Test if relative (" ") #include is working', () => {
+	const fp = new FilePreprocessor();
+	const teststring = `
+        #include "include.inc"
     `;
 
 	const testresult = `
