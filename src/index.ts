@@ -181,6 +181,15 @@ export class FilePreprocessor {
 	}
 
 	private processDefined(lineIn: string): string {
+		let res : RegExpExecArray | null;
+		while( (res = this.rDefined.exec(lineIn)) !== null) {
+			if(this.defines[res[1]] !== undefined) {
+				lineIn = lineIn.replace(res[0], 'true');
+				
+			} else {
+				lineIn = lineIn.replace(res[0], 'false');
+			}
+		}
 		return lineIn;
 	}
 
