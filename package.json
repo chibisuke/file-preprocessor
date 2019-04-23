@@ -1,6 +1,6 @@
 {
   "name": "file-preprocessor",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "a C++ like proprocessor to apply to various files in an Ionic/Angular project.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
