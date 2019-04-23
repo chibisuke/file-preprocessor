@@ -29,4 +29,9 @@ Supported directives:
  #include "pathFromCurrentFile"
 </pre>
 
+##Typescript/Angular7:
 
+since @ngtools/webpack doesn't follow the basic rules for WebPack loaders (Loaders don't read their own imput file), the used of the Preprocessor with typescript isn't quite that simple.
+
+The easiest way is to Path @ngtools/webpack to run the files it loads through the file-preprocessor.
+A Sample patch can be found in patch/@ngtools+webpack+7.3.8.patch in GIT. It can simply be droppen in the patches directory of your project, and used using the npm packet patch-packets.
