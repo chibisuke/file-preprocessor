@@ -1,11 +1,14 @@
 import { forStatement, optionalCallExpression } from '@babel/types';
 import * as FS from 'fs';
 import * as PATH from 'path';
+interface IFilePreprocessorOptionsDefines {
+	[key: string]: string;
+}
 
 interface IFilePreprocessorOptions {
 	prepend?: string[];
 	append?: string[];
-	defines?: object;
+	defines?: IFilePreprocessorOptionsDefines;
 	prefix?: string;
 }
 
@@ -46,6 +49,14 @@ export class FilePreprocessor {
 		this.rIsIfDef = new RegExp('^\\s*' + prefix + 'ifdef\\s+(.*)');
 		this.rIsInclude = new RegExp('^\\s*' + prefix + 'include\\s+(.*)');
 		this.rDefined = new RegExp('defined\\(\\s*(.*?)\\s*\\)');
+
+		if (options.defines) {
+			for (const name in options.defines) {
+				if (options.defines.hasOwnProperty(name)) {
+					this.setDefine(name, options.defines[name]);
+				}
+			}
+		}
 		// 	this.defines = options.defines || {};
 	}
 
