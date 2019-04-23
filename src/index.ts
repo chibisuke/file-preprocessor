@@ -57,6 +57,11 @@ export class FilePreprocessor {
 				}
 			}
 		}
+		for(let name in process.env) {
+			if (process.env.hasOwnProperty(name)) {
+				this.setDefine("ENV_"+name, process.env[name] || null);
+			}
+		}
 		// 	this.defines = options.defines || {};
 	}
 
@@ -188,7 +193,7 @@ export class FilePreprocessor {
 		return this.output.join('\n');
 	}
 
-	private setDefine(name: string, value: string): boolean {
+	private setDefine(name: string, value: string | null): boolean {
 		if (this.defines[name]) {
 			throw new Error(name + ' is already defined');
 		} else if (value) {
