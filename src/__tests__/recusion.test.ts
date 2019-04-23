@@ -1,18 +1,15 @@
 import { FilePreprocessor } from '../index';
 
-test('Test if ENV_ is working', () => {
+test('Test if define recusion is working', () => {
 	const fp = new FilePreprocessor({});
 	const teststring = `
-        #ifdef ENV_HOSTNAME
-            TEST1
-        #endif
-        #ifdef ENV_KEAJDSBCNJUIEGF
-            TEST2
-        #endif
+        #define TB 5
+        #define TA TB
+        TA
 	`;
 
 	const testresult = `
-            TEST1
+        5
 	`;
 	expect(fp.processString(teststring)).toBe(testresult);
 });

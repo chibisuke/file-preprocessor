@@ -57,9 +57,9 @@ export class FilePreprocessor {
 				}
 			}
 		}
-		for(let name in process.env) {
+		for (const name in process.env) {
 			if (process.env.hasOwnProperty(name)) {
-				this.setDefine("ENV_"+name, process.env[name] || null);
+				this.setDefine('ENV_' + name, process.env[name] || null);
 			}
 		}
 		// 	this.defines = options.defines || {};
@@ -197,7 +197,14 @@ export class FilePreprocessor {
 		if (this.defines[name]) {
 			throw new Error(name + ' is already defined');
 		} else if (value) {
-			this.defines[name] = { value, regex: new RegExp('(\\W*)(' + name + ')(\\W*)') };
+			if (this.defines[value]) {
+				this.defines[name] = {
+					regex: new RegExp('(\\W*)(' + name + ')(\\W*)'),
+					value: this.defines[value].value,
+				};
+			} else {
+				this.defines[name] = { value, regex: new RegExp('(\\W*)(' + name + ')(\\W*)') };
+			}
 		} else {
 			this.defines[name] = {};
 		}
