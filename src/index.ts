@@ -6,6 +6,7 @@ interface IFilePreprocessorOptions {
 	prepend?: string[];
 	append?: string[];
 	defines?: object;
+	prefix?: string;
 }
 
 interface IParserStackEntry {
@@ -23,16 +24,26 @@ export class FilePreprocessor {
 	protected parserStack: IParserStackEntry[] = [];
 	protected defines: IDefines = {};
 
-	private readonly rIsIf: RegExp = new RegExp('^\\s*#if\\s+(.*)');
-	private readonly rIsElse: RegExp = new RegExp('^\\s*#else\\s*$');
-	private readonly rIsElseIf: RegExp = new RegExp('^\\s*#elseif\\s+(.*)');
-	private readonly rIsDefine: RegExp = new RegExp('^\\s*#define\\s+(.+?)(\\s+(.+))*\\s*$');
-	private readonly rIsEndIf: RegExp = new RegExp('^\\s*#endif\\s*$');
-	private readonly rIsIfDef: RegExp = new RegExp('^\\s*#ifdef\\s+(.*)');
-	private readonly rIsInclude: RegExp = new RegExp('^\\s*#include\\s+(.*)');
-	private readonly rDefined: RegExp = new RegExp('defined\\(\\s*(.*?)\\s*\\)');
+	private rIsIf: RegExp;
+	private rIsElse: RegExp;
+	private rIsElseIf: RegExp;
+	private rIsDefine: RegExp;
+	private rIsEndIf: RegExp;
+	private rIsIfDef: RegExp;
+	private rIsInclude: RegExp;
+	private rDefined: RegExp;
 
 	constructor(public options: IFilePreprocessorOptions = {}) {
+		const prefix = options.prefix || '#';
+
+		this.rIsIf = new RegExp('^\\s*' + prefix + 'if\\s+(.*)');
+		this.rIsElse = new RegExp('^\\s*' + prefix + 'else\\s*$');
+		this.rIsElseIf = new RegExp('^\\s*' + prefix + 'elseif\\s+(.*)');
+		this.rIsDefine = new RegExp('^\\s*' + prefix + 'define\\s+(.+?)(\\s+(.+))*\\s*$');
+		this.rIsEndIf = new RegExp('^\\s*' + prefix + 'endif\\s*$');
+		this.rIsIfDef = new RegExp('^\\s*' + prefix + 'ifdef\\s+(.*)');
+		this.rIsInclude = new RegExp('^\\s*' + prefix + 'include\\s+(.*)');
+		this.rDefined = new RegExp('defined\\(\\s*(.*?)\\s*\\)');
 		// 	this.defines = options.defines || {};
 	}
 
@@ -181,11 +192,11 @@ export class FilePreprocessor {
 	}
 
 	private processDefined(lineIn: string): string {
-		let res : RegExpExecArray | null;
-		while( (res = this.rDefined.exec(lineIn)) !== null) {
-			if(this.defines[res[1]] !== undefined) {
+		let res: RegExpExecArray | null;
+		// tslint:disable-next-line: no-conditional-assignment
+		while ((res = this.rDefined.exec(lineIn)) !== null) {
+			if (this.defines[res[1]] !== undefined) {
 				lineIn = lineIn.replace(res[0], 'true');
-				
 			} else {
 				lineIn = lineIn.replace(res[0], 'false');
 			}
