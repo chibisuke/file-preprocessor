@@ -145,6 +145,17 @@ export class FilePreprocessor {
 				continue;
 			}
 
+			stackTop = this.parserStack[this.parserStack.length - 1];
+			if (stackTop && stackTop.type === 'if' && stackTop.result === false) {
+				continue;
+			}
+			if (stackTop && stackTop.type === 'elseif' && stackTop.result === false) {
+				continue;
+			}
+			if (stackTop && stackTop.type === 'else' && stackTop.result === true) {
+				continue;
+			}
+
 			// #define
 			res = this.rIsDefine.exec(ln);
 			if (res !== null) {
@@ -172,16 +183,6 @@ export class FilePreprocessor {
 				continue;
 			}
 
-			stackTop = this.parserStack[this.parserStack.length - 1];
-			if (stackTop && stackTop.type === 'if' && stackTop.result === false) {
-				continue;
-			}
-			if (stackTop && stackTop.type === 'elseif' && stackTop.result === false) {
-				continue;
-			}
-			if (stackTop && stackTop.type === 'else' && stackTop.result === true) {
-				continue;
-			}
 			this.output.push(this.replaceDefines(ln));
 		}
 		if (!nested && this.options.append) {
