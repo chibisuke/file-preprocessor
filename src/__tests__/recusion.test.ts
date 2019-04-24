@@ -14,7 +14,6 @@ test('Test if define recusion is working', () => {
 	expect(fp.processString(teststring)).toBe(testresult);
 });
 
-
 test('Test if define recusion+combining is working', () => {
 	const fp = new FilePreprocessor({});
 	const teststring = `
