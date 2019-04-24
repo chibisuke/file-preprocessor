@@ -24,7 +24,11 @@ function run() {
 	const output = fp.processString(input);
 
 	if (process.argv[3]) {
-		fs.writeFileSync(process.argv[2], output, { encoding: 'utf8' });
+		try {
+			fs.writeFileSync(process.argv[3], output, { encoding: 'utf8' });
+		} catch (e) {
+			console.log(e);
+		}
 	} else {
 		console.log(output);
 	}
