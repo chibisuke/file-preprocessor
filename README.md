@@ -35,3 +35,7 @@ since @ngtools/webpack doesn't follow the basic rules for WebPack loaders (Loade
 
 The easiest way is to Path @ngtools/webpack to run the files it loads through the file-preprocessor.
 A Sample patch can be found in patch/@ngtools+webpack+7.3.8.patch in GIT. It can simply be droppen in the patches directory of your project, and used using the npm packet patch-packets.
+
+##Commandline:
+There is also a small commandline utility called "preprocess" that can be called on any input (and output) file to run it through the preprocessor. 
+It takes a PREPEND= and a PREFIX= environment variable, and input (and option output) as arguments.
