@@ -95,7 +95,7 @@ export class FilePreprocessor {
 			// #if a == 5
 			res = this.rIsIf.exec(ln);
 			if (res !== null) {
-				const fun = new Function('return (' + this.processDefined(res[1]) + ')');
+				const fun = new Function('return (' + this.replaceDefines(this.processDefined(res[1])) + ')');
 				if (fun()) {
 					this.parserStack.push({ type: 'if', result: true });
 				} else {
@@ -112,7 +112,7 @@ export class FilePreprocessor {
 				} else {
 					const wasTrue = stackTop.result || stackTop.wasTrue;
 					this.parserStack.pop();
-					const fun = new Function('return (' + this.processDefined(res[1]) + ')');
+					const fun = new Function('return (' + this.replaceDefines(this.processDefined(res[1])) + ')');
 					if (!wasTrue && fun()) {
 						this.parserStack.push({ type: 'elseif', result: true });
 					} else {
