@@ -199,7 +199,7 @@ export class FilePreprocessor {
 			throw new Error(name + ' is already defined');
 		} else if (value) {
 			const val = this.replaceDefines(value);
-			this.defines[name] = { value: val, regex: new RegExp('(\\W*)(' + name + ')(\\W*)') };
+			this.defines[name] = { value: val, regex: new RegExp('(\\W*)(' + name + ')(\\W*)', 'g') };
 		} else {
 			this.defines[name] = {};
 		}
