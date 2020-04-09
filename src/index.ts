@@ -39,7 +39,7 @@ export class FilePreprocessor {
 	private rLocalInclude: RegExp = new RegExp('.*\\((.*):[0-9]+:[0-9]+\\)');
 
 	constructor(public options: IFilePreprocessorOptions = {}) {
-		const prefix = options.prefix || '(?:\/\/\s*)*#';
+		const prefix = options.prefix || '(?:\/\/\\s*)*#';
 
 		this.rIsIf = new RegExp('^\\s*' + prefix + 'if\\s+(.*)');
 		this.rIsElse = new RegExp('^\\s*' + prefix + 'else\\s*$');
